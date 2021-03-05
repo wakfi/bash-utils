@@ -1,0 +1,19 @@
+#!/bin/bash
+
+args="$@"
+# source any files with aliases
+. ~/.bash_aliases
+alias "$args" 1>/dev/null 2>&1 
+if [ $? -ne 0 ]
+then
+	>&2 echo "alias '${args}' not found"
+else
+	loc="$(whereis "$(alias "$args" | sed -r "s/.*='(.*)'/\1/")" | sed -r "s#\S* /#/#" | sed -r "s# /.*##")"
+	loc="${loc#*:}"
+	if [ -z "$loc" ]
+	then 
+		>&2 echo "'${args}' could not be expanded"
+	else
+		echo "$loc"
+	fi
+fi

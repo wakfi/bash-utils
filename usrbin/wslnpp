@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# if your notepad++ install is in a different location replace it here
+PROGRAM_PATH="/mnt/c/Program Files/Notepad++/Notepad++.exe"
+
+for file in $@
+do
+	"$PROGRAM_PATH" $(echo $file | sed "s#^/#U:/#g")
+done

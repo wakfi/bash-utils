@@ -1,0 +1,87 @@
+function cdmk() {
+	# cd into dir if exists
+	# else mkdir and cd
+	# supports all options of both commands
+	# except -@ from mkdir
+
+	#set -x
+	Lflag=
+	Pflag=
+	eflag=
+	aflag=
+	mflag=
+	mval=
+	pflag=
+	vflag=
+	Zflag=
+	Zval=
+	while getopts 'LPem:pvZ:' args	
+	do
+		case $args in
+		L)    pflag=1;;
+		P)    pflag=1;;
+		e)    pflag=1;;
+		m)    mflag=1
+			  mval="$OPTARG";;
+		p)    pflag=1;;
+		v)    pflag=1;;
+		Z)	  Zflag=1
+			  Zval="$OPTARG";;
+		?)   printf "Usage: %s: [-L|[-P [-e]]|-p|-v|-m MODE|-Z [CONTEXT]] [dir]%nSee `help cd` and `man mkdir` for more info on flag usage" $0
+			  exit 2;;
+		esac
+	done
+
+	shift $(($OPTIND - 1))
+	dir="$*"
+
+	cdflags=""
+	mkdirflags=""
+
+	if [ ! -z "$Lflag" ]; then
+		cdflags="${cdflags}L"
+	fi
+	if [ ! -z "$Pflag" ]; then
+		cdflags="${cdflags}P"
+	fi
+	if [ ! -z "$eflag" ]; then
+		cdflags="${cdflags}e"
+	fi
+	if [ ! -z "$cdflags" ]; then
+		cdflags="-${cdflags}"
+	fi
+	if [ ! -z "$pflag" ]; then
+		mkdirflags="${mkdirflags}p"
+	fi
+	if [ ! -z "$vflag" ]; then
+		mkdirflags="${mkdirflags}v"
+	fi
+	if [ ! -z "$mflag" ]; then
+		if [ ! -z "$mkdirflags" ]; then
+			mkdirflags="${mkdirflags} -m ${mval}"
+		else
+			mkdirflags="m ${mval}"
+		fi
+	fi
+	if [ ! -z "$Zflag" ]; then
+		if [ ! -z "$mkdirflags" ]; then
+			mkdirflags="${mkdirflags} -Z ${Zval}"
+		else
+			mkdirflags="Z ${Zval}"
+		fi
+	fi
+	if [ ! -z "$mkdirflags" ]; then
+		mkdirflags="-${mkdirflags}"
+	fi
+
+	if [ ! -z "$mkdirflags" ] && [ ! -z "$cdflags" ] ; then
+		cd $cdflags "$dir" 2>/dev/null || mkdir $mkdirflags "$dir" && cd $cdflags "$dir"
+	elif [ ! -z "$cdflags" ] ; then
+		cd $cdflags "$dir" 2>/dev/null || mkdir "$dir" && cd $cdflags "$dir"
+	elif [ ! -z "$mkdirflags" ] ; then
+		cd "$dir" 2>/dev/null || mkdir $mkdirflags "$dir" && cd "$dir"
+	else
+		cd "$dir" 2>/dev/null || mkdir "$dir" && cd "$dir"
+	fi
+	#set +x
+}

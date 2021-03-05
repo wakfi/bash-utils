@@ -1,0 +1,62 @@
+#!/bin/bash
+args=("${@}")
+cur="$PWD"
+username_="wakfi" # your username here
+# I'm not 100% sure that '--source-only' actually exists but it's not a big deal
+. "/home/$username_/.bash_func/.locate_gitignore" --source-only 2>/dev/null
+. "/home/$username_/.bash_func/.locate_git_dir" --source-only 2>/dev/null
+
+gitignore_loc=$(__locate_gitignore 2>/dev/null)
+
+if [ 0 -eq "${#args[*]}" ]
+then
+	# with no arguments, print absolute path to closest .gitignore to PWD
+	# if there is one, else print that there is none
+	if [ -z "$gitignore_loc" ]
+	then
+		>&2 echo "no .gitignore in current working tree path"
+		exit 1
+	fi
+	echo "$gitignore_loc"
+	exit 0
+else
+	# with arguments, add arguments to closest .gitignore to be ignored
+	# assumes there is at least one blank line at end of .gitignore
+	# currently, I'm unable to get '*' to print all the way out to the file
+	# although it does result in ignoring everything the pattern would currently
+	# ignore, using expanded patterns
+	gitdirloc=$(__locate_git_dir 2>/dev/null)
+	if [ -z "$gitdirloc" ]
+	then
+		if [ -z "$gitignore_loc" ]
+		then
+			gitignore_loc="${cur}/.gitignore"
+		fi
+		repodir="${gitignore_loc%/*}"
+		repodir="${repodir##*/}/.gitignore"
+	else
+		repodir="${gitdirloc%/*}"
+		if [ ! -z "$GIT_PREFIX" ]
+		then
+			if [ -z "$gitignore_loc" ]
+			then
+				gitignore_loc="${repodir}/${GIT_PREFIX}/.gitignore"
+			fi
+			repodir="${repodir##*/}/$(cd "${gitignore_loc%/*}" && git rev-parse --show-prefix).gitignore"
+		else
+			if [ -z "$gitignore_loc" ]
+			then
+				gitignore_loc="${repodir}/.gitignore"
+			fi
+			repodir="${repodir##*/}/.gitignore"
+		fi
+	fi
+	# when successful, the .gitignore that was modified is stated relative to the top-level repo directory
+	for pattern in "${args[@]}"
+	do
+		echo "$pattern" >> "$gitignore_loc"
+		echo "Added \'$pattern\' to $repodir"
+	done
+fi
+
+

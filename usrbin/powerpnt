@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PROGRAM_PATH='/mnt/c/Program Files (x86)/Microsoft Office/root/Office16/POWERPNT.EXE'
+
+if [[ "$@" = "" ]]
+then
+	("$PROGRAM_PATH" &)
+else
+	for file in "$@"
+	do
+		(realpath --relative-to="${PWD}" "$file" | sed -r "s/(.*)/\\\"\1\\\"/g" | xargs "$PROGRAM_PATH" &)
+	done
+fi

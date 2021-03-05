@@ -1,0 +1,22 @@
+[credential]
+	helper = '/mnt/c/Program Files/Git/mingw64/libexec/git-core/git-credential-manager.exe'
+[commit]
+	gpgSign = true
+[user]
+	signingKey = My Key Fingerprint
+	name = Walker Gray
+	email = 55608093+wakfi@users.noreply.github.com
+[core]
+	editor = nppgit
+[gpg]
+	program = gpg
+[alias]
+	puoh = push -u origin HEAD
+	map = !sh -c 'git log --graph --decorate $(git rev-list -g --all)'
+	minimap = !sh -c 'git log --graph --oneline --decorate $(git rev-list -g --all)'
+	onelog = log --oneline
+	ignore = "!f(){ __git_ignore__ "$@" | xargs echo; }; f"
+	unstage = restore --staged
+	alias = "!f(){ __git_alias__ "$@"; }; f"
+	rao = remote add origin
+	

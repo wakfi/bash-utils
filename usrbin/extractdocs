@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Author: Walker Gray
+
+#Use set -x if you want to echo each command while getting executed
+#set -x
+
+#Save current directory so we can restore it later
+cur=$PWD
+#Save command line arguments so functions can access it
+args=("$@")
+
+# Help message
+if [ "$1" == "--help" ]
+then
+	echo "Usage: $(basename $0) [PATH]"
+	echo "  Copy all files with specified extensions into a single directory."
+	echo ""
+	echo "  Options"
+	echo "    --help     display this help output and exit"
+	echo ""
+	echo "  Uses directory with given PATH if one exists, otherwise a directory is created using"
+	echo "  the provided PATH. If no PATH is specified, PATH defaults to '../hard_copies'."
+	echo "  Expects two types of files: source code and documents. Three directories are created in"
+	echo "  the destination directory (if they do not already exist), one each for the two types of"
+	echo "  files and one to hold all files regardless of type. Target files are copied with their"
+	echo "  source directory name as a prefix. The copies are moved to the destination directories."
+	echo "  Original files are unmodified. To change the targeted files, add or remove glob patterns"
+	echo "  from the comment indicated lists in the script file (with current implementation"
+	echo "  approach, there is no way to accept argument input for file extensions). Any directories"
+	echo "  that do not have any document files have their directory name printed to a file in the"
+	echo "  destination directory; the same occurs for source code files, printing to a separate file."
+	exit 0
+fi
+
+# Determine destination by checking for argument
+hcdir=$([ -z "$1" ] && echo "../hard_copies" || echo "$1")
+
+# Prepare destination directory
+test -d "$hcdir" || mkdir "$hcdir"
+cd "$hcdir"
+dest="$PWD"
+echo " " > nodocuments.txt
+echo " " > nocodefiles.txt
+test -d writeups || mkdir writeups
+test -d code || mkdir code
+test -d allfiles || mkdir allfiles
+cd "$cur"
+
+# Iterate over subdirecteries
+for dir in "$cur"/*
+do
+	test -d "$dir" || continue
+	cd "$dir"
+	dirname="$PWD"
+	# Generate name of current directory to use as filename prefix
+	result="${dirname%"${dirname##*[!/]}"}" # extglob-free multi-trailing-/ trim
+	result="${result##*/}"                  # removes everything before the last /
+	
+	# Change this list of extensions to relevant file extensions for source code files, comma seperated
+	code=1
+	for codefile in "$dir"/{*.sql,}
+	do
+		#test -f "$codefile" || continue
+		codefile="${codefile%"${codefile##*[!/]}"}"
+		codefile="${codefile##*/}"
+		if(test -f "$codefile")
+		then
+			cp "$codefile" "${result}_${codefile}"
+			cp "${result}_${codefile}" "${dest}/code"
+			mv "${result}_${codefile}" "${dest}/allfiles"
+		fi
+		test -f "$codefile"
+		lastcode=$?
+		code=$((code&&lastcode))
+	done
+	if [[ $code > 0 ]]
+	then
+		echo "$result" >> "${dest}/nocodefiles.txt"
+	fi
+	code=1
+	# Change this list of extensions to relevant file extensions for document files, comma seperated
+	for filename in "$dir"/{*.pdf,*.txt,*.doc,*.docx,*.xls,*.xlsx}
+	do
+		name="${filename%"${filename##*[!/]}"}"
+		name="${name##*/}" 
+		if(test -f "$name")
+		then
+			cp "$name" "${result}_${name}"
+			cp "${result}_${name}" "${dest}/writeups"
+			mv "${result}_${name}" "${dest}/allfiles"
+		fi
+		test -f "$name"
+		lastcode=$?
+		code=$((code&&lastcode))
+	done
+	if [[ $code > 0 ]]
+	then
+		echo "$result" >> "${dest}/nodocuments.txt"
+	fi
+	cd "$cur"
+done

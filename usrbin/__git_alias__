@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -ge 2 ] 
+then
+	name="${@:1:1}"
+	command="${@:2}"
+	git config --global alias."$name" "$command"
+else
+	echo "Must include at least 2 words, e.g. aliasTest 'test'" 
+fi
+

@@ -1,0 +1,38 @@
+__locate_gitignore_subdirectory()
+{
+	local results=$(find . -name .gitignore)
+	if [ "$?" -ne 0 ]
+	then
+		return 1
+	fi
+	local trunc=${results%%[[:space:]]*.gitignore}
+	echo $(readlink -e "$trunc")
+	return "$?"
+}
+__locate_gitignore()
+{
+	local cur="${PWD}/${GIT_PREFIX}"
+	cd "$cur"
+	local gitignore_loc=$(test -f ".gitignore" && echo "${PWD}/.gitignore" || echo "" 2>/dev/null)
+	while [ -z "$gitignore_loc" ]
+	do
+		if [ "$PWD" = "/" -o "$PWD" = "/mnt" ]
+		then
+			break
+		fi
+		cd ../
+		local gitignore_loc=$(test -f ".gitignore" && echo "${PWD}/.gitignore" || echo "" 2>/dev/null)
+	done
+	cd "$cur"
+	if [ -z "$gitignore_loc" ]
+	then
+		local gitignore_loc=$(__locate_gitignore_subdirectory)
+		if [ -z "$gitignore_loc" ]
+		then
+			>&2 echo "no .gitignore in current working tree path"
+			return 1
+		fi
+	fi
+	echo "$gitignore_loc"
+	return 0
+}

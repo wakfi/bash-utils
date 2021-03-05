@@ -1,0 +1,17 @@
+__locate_git_dir()
+{
+	local cur="${PWD}/${GIT_PREFIX}"
+	cd "$cur"
+	local git_loc=$(test -d .git && echo "${PWD}/.git" || echo "" 2>/dev/null)
+	while [ -z "$git_loc" ]
+	do
+		if [ "$PWD" = "/" ]
+		then
+			break
+		fi
+		cd ../
+		local git_loc=$(test -d .git && echo "${PWD}/.git" || echo "" 2>/dev/null)
+	done
+	cd "$cur"
+	echo "$git_loc"
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PROGRAM_PATH='/mnt/c/Program Files/Notepad++/Notepad++.exe'
+echo $@ | sed "s/\/mnt\/c//g" | sed -r "s/(.*)/\\\"\1\\\"/g" | xargs "$PROGRAM_PATH" -multiInst -nosession

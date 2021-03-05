@@ -1,0 +1,13 @@
+#!/bin/bash
+
+MAIN_DRIVE_LOC="C"
+LOWERCASE_MAIN="c"
+WSL_DRIVE_LOCATION="U"
+
+# I later learned that wslpath existed
+# This still has a convenience factor for me
+
+if [[ "$@" != "" ]]
+then
+	echo "$@" | sed -r "s#^([^/A-Z.][^:][^/])#$PWD/\1#g" | sed -r "s/(.*)/\\\"\1\\\"/g" | xargs readlink -f | sed "s#/mnt/$LOWERCASE_MAIN#$MAIN_DRIVE_LOC:#g" | sed "s#^/#$WSL_DRIVE_LOCATION:/#g" | sed -r "s/(.* .*)/\\\"'\1'\\\"/g" | xargs echo
+fi

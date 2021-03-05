@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# return arguments quoted
+args=("$@")
+out=()
+for args
+do
+	out+=$(echo "${args@Q}")
+done
+echo "${out[@]}" | sed "s#''#' '#g"

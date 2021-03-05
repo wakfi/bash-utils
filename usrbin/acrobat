@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PROGRAM_PATH='/mnt/c/Program Files (x86)/Adobe/Acrobat Reader DC/Reader/AcroRd32.exe'
+
+if [[ "$@" = "" ]]
+then
+	("$PROGRAM_PATH" &)
+else
+	for file in "$@"
+	do
+		(wslconvert "$file" | xargs "$PROGRAM_PATH" &)
+	done
+fi
